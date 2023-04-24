@@ -30,7 +30,6 @@ void setup() {
  Serial.print("Connecting to Wifi SSID ");
   Serial.print(WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
@@ -38,7 +37,8 @@ void setup() {
   }
   Serial.print("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
-
+  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+ 
   Serial.print("Retrieving time: ");
   configTime(0, 0, "pool.ntp.org"); // get UTC time via NTP
   time_t now = time(nullptr);
@@ -61,8 +61,8 @@ void setup() {
   pinMode(led, OUTPUT);
   pinMode(Buzzer, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);
-  digitalWrite(led, LOW);      
+  digitalWrite(RELAY_PIN, HIGH);
+  digitalWrite(led, HIGH);      
   noTone(Buzzer);
 
 }
@@ -82,29 +82,29 @@ void sendTemperatureToBot() {
   Serial.print(tempString);
   Serial.println("C");
   if (temperature >= 30) {
-    bot.sendMessage(CHAT_ID, "Bot started upp", "");
+//    bot.sendMessage(CHAT_ID, "Bot started upp", "");
     bot.sendMessage(CHAT_ID, "High temperature", "");
     tempp = true;    
 //    bot.sendMessage(CHAT_ID, tempString, "");
   } else {
     tempp = false;
-//    bot.sendMessage(CHAT_ID, tempString, "");
+    bot.sendMessage(CHAT_ID, tempString, "");
     bot.sendMessage(CHAT_ID, "normal temperature", "");
   }
 }
 
 void checkoutputs(){
   if(flamee==true && tempp == true){ //case 8 and 6 led and buzzer on 
-    digitalWrite(RELAY_PIN, LOW);
+    digitalWrite(RELAY_PIN, HIGH);
     digitalWrite(led, HIGH);
-    //tone(Buzzer, 1000);
+    tone(Buzzer, 1000);
     Serial.println("68");
 
   }else{ 
     if(flamee==true && tempp == false){  //case 7 and 5 buzzer on 
-      digitalWrite(RELAY_PIN, LOW);
+      digitalWrite(RELAY_PIN, HIGH);
       digitalWrite(led, LOW);
-     // tone(Buzzer, 1000);
+      tone(Buzzer, 1000);
       Serial.println("75");
 
     }else{
@@ -116,7 +116,7 @@ void checkoutputs(){
 
       }else{
         if(flamee==false && gass==true && tempp == false){  //case 3 fan buzzer on
-          digitalWrite(RELAY_PIN, HIGH);
+          digitalWrite(RELAY_PIN, LOW);
           digitalWrite(led, LOW);
           tone(Buzzer, 1000);
           Serial.println("3");
@@ -128,8 +128,8 @@ void checkoutputs(){
             noTone(Buzzer);
             Serial.println("2");
           }else{
-            if(flamee==false && gass==false && tempp == false){  //case 1 fan buzzer on
-              digitalWrite(RELAY_PIN, LOW);
+            if(flamee==false && gass==false && tempp == false){  //case 1 all off
+              digitalWrite(RELAY_PIN, HIGH);
               digitalWrite(led, LOW);
               noTone(Buzzer);
               Serial.println("1");
@@ -140,12 +140,8 @@ void checkoutputs(){
     }
   }
 }
-
-
 void checkGasSensor(){
-  int gasValue = digitalRead(GAS_PIN);
-
-  if (gasValue == LOW) {
+  if (!digitalRead(GAS_PIN)) {
     Serial.println("Gas detected!");
     bot.sendMessage(CHAT_ID, "gas detected", "");
     gass = true;
@@ -156,7 +152,7 @@ void checkGasSensor(){
 }
 
 void checkUvSensor(){
-  if (digitalRead(UV_SENSOR_PIN)) {
+  if (!digitalRead(UV_SENSOR_PIN)) {
      Serial.println("flame detected!");
     bot.sendMessage(CHAT_ID, "flame detected", "");
     flamee = true;
@@ -167,39 +163,38 @@ void checkUvSensor(){
 }
 
 void loop(){
-  if (WiFi.status() != WL_CONNECTED) {
-     Serial.print("Connecting to Wifi SSID ");
-  Serial.print(WIFI_SSID);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.print("\nWiFi connected. IP address: ");
-  Serial.println(WiFi.localIP());
-
-  Serial.print("Retrieving time: ");
-  configTime(0, 0, "pool.ntp.org"); // get UTC time via NTP
-  time_t now = time(nullptr);
-  while (now < 24 * 3600)
-  {
-    Serial.print(".");
-    delay(100);
-    now = time(nullptr);
-  }
-  Serial.println(now);
-
-  bot.sendMessage(CHAT_ID, "Bot started up", "");
-
-}
-configTime(0, 0, "pool.ntp.org"); // get UTC time via NTP
-time_t now = time(nullptr);
+//  if (WiFi.status() != WL_CONNECTED) {
+//     Serial.print("Connecting to Wifi SSID ");
+//  Serial.print(WIFI_SSID);
+//  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+//  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+//  while (WiFi.status() != WL_CONNECTED)
+//  {
+//    Serial.print(".");
+//    delay(500);
+//  }
+//  Serial.print("\nWiFi connected. IP address: ");
+//  Serial.println(WiFi.localIP());
+//
+//  Serial.print("Retrieving time: ");
+//  configTime(0, 0, "pool.ntp.org"); // get UTC time via NTP
+//  time_t now = time(nullptr);
+//  while (now < 24 * 3600)
+//  {
+//    Serial.print(".");
+//    delay(100);
+//    now = time(nullptr);
+//  }
+//  Serial.println(now);
+//
+//  bot.sendMessage(CHAT_ID, "Bot started up", "");
+//
+//}
 sendTemperatureToBot();
 checkGasSensor();
 checkUvSensor();
 checkoutputs();
-delay(5000); // Wait 5 seconds before looping again
-bot.sendMessage(CHAT_ID, "loop", "");
+//bot.sendMessage(CHAT_ID, "loop  ", "");
+delay(1000); // Wait 5 seconds before looping again
+//bot.sendMessage(CHAT_ID, "loop", "");
 }
